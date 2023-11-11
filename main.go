@@ -6,14 +6,20 @@ import (
 	"log"
 	"time"
 
+	"web-scraper-go/db"
 	"web-scraper-go/handler"
 	"web-scraper-go/scraper"
 
 	"github.com/gofiber/fiber/v2"
 	"github.com/gofiber/fiber/v2/middleware/cors"
+	_ "github.com/lib/pq"
 )
 
 func main() {
+	_, err := db.Init()
+	if err != nil {
+		log.Fatalf("Failed to ping the database, did you forget to run Docker? Error: %v", err)
+	}
 	log.Println("Welcome to Hao's Go Lang Web Scraper")
 
 	app := fiber.New(fiber.Config{
