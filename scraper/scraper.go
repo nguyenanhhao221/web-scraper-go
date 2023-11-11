@@ -6,12 +6,14 @@ import (
 	"sync"
 	"time"
 
+	"web-scraper-go/db/database"
+
 	"github.com/chromedp/cdproto/cdp"
 	"github.com/chromedp/chromedp"
-	"web-scraper-go/types"
 )
 
 func StartScraping(
+	queries *database.Queries,
 	urlToVisit string,
 	timeBetweenRequest time.Duration,
 ) {
@@ -24,12 +26,15 @@ func StartScraping(
 	ticker := time.NewTicker(timeBetweenRequest)
 	for ; ; <-ticker.C {
 		wg.Add(1)
-		go scrape(urlToVisit, wg)
+		go scrape(queries, urlToVisit, wg)
 		wg.Wait()
 	}
 }
 
-func scrape(urlToVisit string, wg *sync.WaitGroup) {
+func scrape(
+	queries *database.Queries,
+	urlToVisit string, wg *sync.WaitGroup,
+) {
 	defer wg.Done()
 	// initializing a chrome instance
 	ctx, cancel := chromedp.NewContext(
@@ -50,22 +55,18 @@ func scrape(urlToVisit string, wg *sync.WaitGroup) {
 		log.Fatalf("Fail to run chromedp, %v", err)
 	}
 
-	var matches []types.Match
-	var match types.Match
-
 	for _, node := range matchListNodes {
-		match.Id = node.AttributeValue("data-comp-match-item")
-		match.HomeTeam = node.AttributeValue("data-home")
-		match.AwayTeam = node.AttributeValue("data-away")
-		match.Stadium = node.AttributeValue("data-venue")
-		match.Status = node.AttributeValue("data-comp-match-item-status")
-		match.DateTime = node.AttributeValue("data-comp-match-item-ko")
 
+		_, err := queries.CreateMatch(context.Background(), database.CreateMatchParams{
+			ID:       node.AttributeValue("data-comp-match-item"),
+			Hometeam: node.AttributeValue("data-home"),
+			Awayteam: node.AttributeValue("data-away"),
+			Stadium:  node.AttributeValue("data-venue"),
+			Status:   node.AttributeValue("data-comp-match-item-status"),
+			Datetime: node.AttributeValue("data-comp-match-item-ko"),
+		})
 		if err != nil {
 			log.Fatalf("Fail to perform extract from node: %v with error: %v", node, err)
 		}
-		matches = append(matches, match)
 	}
-
-	log.Printf("matches %v", matches)
 }
