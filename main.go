@@ -1,5 +1,4 @@
 // Package main
-// https://www.zenrows.com/blog/web-scraping-golang#visit-target-html-page
 package main
 
 import (
