@@ -6,7 +6,8 @@ import (
 	"log"
 	"time"
 
-	"web-scraper/handler"
+	"web-scraper-go/handler"
+	"web-scraper-go/scraper"
 
 	"github.com/gofiber/fiber/v2"
 	"github.com/gofiber/fiber/v2/middleware/cors"
@@ -30,10 +31,10 @@ func main() {
 
 	v1Router.Get("/healthz", handler.HealthCheck)
 
-	urlToVisit := "https://scrapeme.live/shop/"
-	timeBetweenRequest := time.Minute * 1
+	urlToVisit := "https://www.premierleague.com/fixtures"
+	timeBetweenRequest := time.Second * 5
 
-	go startScraping(urlToVisit, timeBetweenRequest)
+	go scraper.StartScraping(urlToVisit, timeBetweenRequest)
 
 	log.Fatal(app.Listen(":3000"))
 }
