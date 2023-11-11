@@ -11,13 +11,18 @@ import (
 func startScraping(
 	urlToVisit string,
 	timeBetweenRequest time.Duration,
-	wg *sync.WaitGroup,
 ) {
 	log.Printf("Scrapping on go routines on every %s duration", timeBetweenRequest)
+
+	// Implement a wait group
+	wg := &sync.WaitGroup{}
+
 	// Similar to interval
 	ticker := time.NewTicker(timeBetweenRequest)
 	for ; ; <-ticker.C {
+		wg.Add(1)
 		go scrape(urlToVisit, wg)
+		wg.Wait()
 	}
 }
 
